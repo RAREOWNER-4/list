@@ -49,6 +49,14 @@
             margin-top: 8px;
             height: 100px;
         }
+        select {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-top: 8px;
+        }
         button {
             background-color: #007BFF;
             color: white;
@@ -77,6 +85,14 @@
                 <label for="vehicleNumbers">Vehicle Numbers (one set per line, comma-separated):</label>
                 <textarea id="vehicleNumbers" name="vehicleNumbers" required></textarea>
             </div>
+            <div class="form-group">
+                <label for="entryLocation">Entry Location:</label>
+                <select id="entryLocation" name="entryLocation" required>
+                    <option value="Kanpur entry">Kanpur entry</option>
+                    <option value="Unnao entry">Unnao entry</option>
+                    <option value="Kanpur, Unnao entry">Kanpur, Unnao entry</option>
+                </select>
+            </div>
             <button type="submit">Generate PDF</button>
         </form>
     </div>
@@ -88,9 +104,10 @@
 
             const ownerName = document.getElementById('ownerName').value.trim();
             const vehicleNumbers = document.getElementById('vehicleNumbers').value.trim();
+            const entryLocation = document.getElementById('entryLocation').value;
 
             if (!ownerName || !vehicleNumbers) {
-                alert('Please fill in both fields.');
+                alert('Please fill in both owner names and vehicle numbers.');
                 return;
             }
 
@@ -130,6 +147,14 @@
 
                 y += 10;
 
+                // Add entry location (e.g., "Kanpur entry") on the right
+                doc.setTextColor(0, 0, 0); // Black color
+                doc.setFontSize(14);
+                doc.setFont("helvetica", "normal");
+                doc.text(entryLocation, 190, y, { align: 'right' });
+
+                y += 5;
+
                 // Add vehicle numbers in black
                 doc.setTextColor(0, 0, 0); // Black color
                 doc.setFontSize(12);
@@ -139,12 +164,6 @@
                     doc.text(vehicle.toUpperCase(), 10, y);
                     y += 5;
                 });
-
-                // Add "Kanpur entry" on the right side
-                doc.setTextColor(0, 0, 0);
-                doc.setFontSize(14);
-                doc.setFont("helvetica", "normal");
-                doc.text('Kanpur entry', 190, y - currentVehicles.length * 5 - 5, { align: 'right' });
 
                 // Add horizontal line if not the last entry
                 if (index < owners.length - 1) {
