@@ -4,45 +4,159 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Vehicle Data Entry</title>
-    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f7fc;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            width: 60%;
+            margin: 50px auto;
+            background-color: white;
+            padding: 20px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            font-size: 18px;
+            margin-bottom: 5px;
+            display: block;
+            color: #333;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-top: 8px;
+        }
+        textarea {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-top: 8px;
+            height: 100px;
+        }
+        button {
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 18px;
+            cursor: pointer;
+            border-radius: 5px;
+            width: 100%;
+            margin-top: 20px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
 </head>
 <body>
-
     <div class="container">
         <h1>🚗 Vehicle Data Entry</h1>
-        
-        <!-- Form for data entry -->
         <form id="vehicleForm">
             <div class="form-group">
-                <label for="ownerName">Owner's Name:</label>
-                <input type="text" id="ownerName" name="ownerName" required>
+                <label for="ownerName">Owner Names (one per line):</label>
+                <textarea id="ownerName" name="ownerName" required></textarea>
             </div>
-
             <div class="form-group">
-                <label for="vehicleNumbers">Vehicle Numbers (comma separated):</label>
-                <input type="text" id="vehicleNumbers" name="vehicleNumbers" required>
+                <label for="vehicleNumbers">Vehicle Numbers (one set per line, comma-separated):</label>
+                <textarea id="vehicleNumbers" name="vehicleNumbers" required></textarea>
             </div>
-
-            <button type="submit">Submit</button>
+            <button type="submit">Generate PDF</button>
         </form>
-
-        <!-- Display area for vehicle data -->
-        <div id="vehicleDataDisplay">
-            <h2>Submitted Vehicle Data</h2>
-            <table id="vehicleDataTable">
-                <thead>
-                    <tr>
-                        <th>Vehicle Number</th>
-                        <th>Owner Name</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <!-- Table rows will be populated by JS -->
-                </tbody>
-            </table>
-        </div>
     </div>
 
-    <script src="app.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script>
+        document.getElementById('vehicleForm').addEventListener('submit', function (event) {
+            event.preventDefault();
+
+            const ownerName = document.getElementById('ownerName').value.trim();
+            const vehicleNumbers = document.getElementById('vehicleNumbers').value.trim();
+
+            if (!ownerName || !vehicleNumbers) {
+                alert('Please fill in both fields.');
+                return;
+            }
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            let y = 10;
+
+            // Split owner names and vehicle numbers by newlines
+            const owners = ownerName.split('\n').map(name => name.trim()).filter(name => name);
+            const vehicleSets = vehicleNumbers.split('\n').map(set => set.split(',').map(v => v.trim()));
+
+            // Ensure the number of owners matches the number of vehicle sets
+            if (owners.length !== vehicleSets.length) {
+                alert('The number of owner names must match the number of vehicle number sets.');
+                return;
+            }
+
+            owners.forEach((name, index) => {
+                // Split the name into main name and suffix (e.g., "John Doe Month")
+                const nameParts = name.split(' ');
+                const mainName = nameParts.slice(0, -1).join(' ').toUpperCase();
+                const suffix = nameParts[nameParts.length - 1].toUpperCase();
+
+                // Add main name in red
+                doc.setTextColor(255, 0, 0); // Red color
+                doc.setFontSize(16);
+                doc.setFont("helvetica", "bold");
+                doc.text(mainName, 10, y);
+
+                // Add suffix below the main name in red
+                y += 5;
+                doc.setTextColor(255, 0, 0); // Red color
+                doc.setFontSize(16);
+                doc.setFont("helvetica", "bold");
+                doc.text(suffix, 10, y);
+
+                y += 10;
+
+                // Add vehicle numbers in black
+                doc.setTextColor(0, 0, 0); // Black color
+                doc.setFontSize(12);
+                doc.setFont("helvetica", "normal");
+                const currentVehicles = vehicleSets[index] || [];
+                currentVehicles.forEach(vehicle => {
+                    doc.text(vehicle.toUpperCase(), 10, y);
+                    y += 5;
+                });
+
+                // Add "Kanpur entry" on the right side
+                doc.setTextColor(0, 0, 0);
+                doc.setFontSize(14);
+                doc.setFont("helvetica", "normal");
+                doc.text('Kanpur entry', 190, y - currentVehicles.length * 5 - 5, { align: 'right' });
+
+                // Add horizontal line if not the last entry
+                if (index < owners.length - 1) {
+                    y += 10;
+                    doc.setDrawColor(0);
+                    doc.line(10, y, 200, y); // Horizontal line
+                    y += 10;
+                }
+            });
+
+            doc.save('vehicle_data.pdf');
+        });
+    </script>
 </body>
 </html>
