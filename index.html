@@ -33,31 +33,36 @@
             color: #333;
         }
         input[type="text"] {
-            width: 100%;
+            width: 80%;
             padding: 10px;
             font-size: 16px;
             border: 1px solid #ddd;
             border-radius: 5px;
             margin-top: 8px;
-        }
-        textarea {
-            width: 100%;
-            padding: 10px;
-            font-size: 16px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            margin-top: 8px;
-            height: 100px;
         }
         select {
-            width: 100%;
+            width: 80%;
             padding: 10px;
             font-size: 16px;
             border: 1px solid #ddd;
             border-radius: 5px;
             margin-top: 8px;
         }
-        button {
+        .add-btn {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            font-size: 14px;
+            cursor: pointer;
+            border-radius: 5px;
+            margin-left: 10px;
+            vertical-align: middle;
+        }
+        .add-btn:hover {
+            background-color: #218838;
+        }
+        button[type="submit"] {
             background-color: #007BFF;
             color: white;
             border: none;
@@ -68,7 +73,7 @@
             width: 100%;
             margin-top: 20px;
         }
-        button:hover {
+        button[type="submit"]:hover {
             background-color: #0056b3;
         }
     </style>
@@ -77,13 +82,19 @@
     <div class="container">
         <h1>🚗 Vehicle Data Entry</h1>
         <form id="vehicleForm">
-            <div class="form-group">
-                <label for="ownerName">Owner Names (one per line):</label>
-                <textarea id="ownerName" name="ownerName" required></textarea>
+            <div id="ownerFields">
+                <div class="form-group">
+                    <label>Owner Name:</label>
+                    <input type="text" name="ownerName[]" required>
+                    <button type="button" class="add-btn" onclick="addOwnerField()">Add Owner</button>
+                </div>
             </div>
-            <div class="form-group">
-                <label for="vehicleNumbers">Vehicle Numbers (one set per line, comma-separated):</label>
-                <textarea id="vehicleNumbers" name="vehicleNumbers" required></textarea>
+            <div id="vehicleFields">
+                <div class="form-group">
+                    <label>Vehicle Numbers (comma-separated):</label>
+                    <input type="text" name="vehicleNumbers[]" required>
+                    <button type="button" class="add-btn" onclick="addVehicleField()">Add Vehicle Set</button>
+                </div>
             </div>
             <div class="form-group">
                 <label for="entryLocation">Entry Location:</label>
@@ -99,15 +110,45 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script>
+        let ownerCount = 1;
+        let vehicleCount = 1;
+
+        function addOwnerField() {
+            ownerCount++;
+            const ownerFields = document.getElementById('ownerFields');
+            const newField = document.createElement('div');
+            newField.className = 'form-group';
+            newField.innerHTML = `
+                <label>Owner Name:</label>
+                <input type="text" name="ownerName[]" required>
+            `;
+            ownerFields.appendChild(newField);
+        }
+
+        function addVehicleField() {
+            vehicleCount++;
+            const vehicleFields = document.getElementById('vehicleFields');
+            const newField = document.createElement('div');
+            newField.className = 'form-group';
+            newField.innerHTML = `
+                <label>Vehicle Numbers (comma-separated):</label>
+                <input type="text" name="vehicleNumbers[]" required>
+            `;
+            vehicleFields.appendChild(newField);
+        }
+
         document.getElementById('vehicleForm').addEventListener('submit', function (event) {
             event.preventDefault();
 
-            const ownerName = document.getElementById('ownerName').value.trim();
-            const vehicleNumbers = document.getElementById('vehicleNumbers').value.trim();
+            const ownerInputs = document.getElementsByName('ownerName[]');
+            const vehicleInputs = document.getElementsByName('vehicleNumbers[]');
             const entryLocation = document.getElementById('entryLocation').value;
 
-            if (!ownerName || !vehicleNumbers) {
-                alert('Please fill in both owner names and vehicle numbers.');
+            const owners = Array.from(ownerInputs).map(input => input.value.trim()).filter(name => name);
+            const vehicles = Array.from(vehicleInputs).map(input => input.value.trim()).filter(set => set);
+
+            if (owners.length !== vehicles.length || owners.length === 0) {
+                alert('The number of owner names must match the number of vehicle number sets, and both must be non-empty.');
                 return;
             }
 
@@ -116,29 +157,16 @@
 
             let y = 10;
 
-            // Split owner names and vehicle numbers by newlines
-            const owners = ownerName.split('\n').map(name => name.trim()).filter(name => name);
-            const vehicleSets = vehicleNumbers.split('\n').map(set => set.split(',').map(v => v.trim()));
-
-            // Ensure the number of owners matches the number of vehicle sets
-            if (owners.length !== vehicleSets.length) {
-                alert('The number of owner names must match the number of vehicle number sets.');
-                return;
-            }
-
             owners.forEach((name, index) => {
-                // Split the name into main name and suffix (e.g., "John Doe Month")
                 const nameParts = name.split(' ');
                 const mainName = nameParts.slice(0, -1).join(' ').toUpperCase();
                 const suffix = nameParts[nameParts.length - 1].toUpperCase();
 
-                // Add main name in red
                 doc.setTextColor(255, 0, 0); // Red color
                 doc.setFontSize(16);
                 doc.setFont("helvetica", "bold");
                 doc.text(mainName, 10, y);
 
-                // Add suffix below the main name in red
                 y += 5;
                 doc.setTextColor(255, 0, 0); // Red color
                 doc.setFontSize(16);
@@ -147,7 +175,6 @@
 
                 y += 10;
 
-                // Add entry location (e.g., "Kanpur entry") on the right
                 doc.setTextColor(0, 0, 0); // Black color
                 doc.setFontSize(14);
                 doc.setFont("helvetica", "normal");
@@ -155,17 +182,15 @@
 
                 y += 5;
 
-                // Add vehicle numbers in black
                 doc.setTextColor(0, 0, 0); // Black color
                 doc.setFontSize(12);
                 doc.setFont("helvetica", "normal");
-                const currentVehicles = vehicleSets[index] || [];
+                const currentVehicles = vehicles[index].split(',').map(v => v.trim());
                 currentVehicles.forEach(vehicle => {
                     doc.text(vehicle.toUpperCase(), 10, y);
                     y += 5;
                 });
 
-                // Add horizontal line if not the last entry
                 if (index < owners.length - 1) {
                     y += 10;
                     doc.setDrawColor(0);
