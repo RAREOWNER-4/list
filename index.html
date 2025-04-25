@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vehicle Data Entry</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <div class="container">
+        <h1>🚗 Vehicle Data Entry</h1>
+        
+        <!-- Form for data entry -->
+        <form id="vehicleForm">
+            <div class="form-group">
+                <label for="ownerName">Owner's Name:</label>
+                <input type="text" id="ownerName" name="ownerName" required>
+            </div>
+
+            <div class="form-group">
+                <label for="vehicleNumbers">Vehicle Numbers (comma separated):</label>
+                <input type="text" id="vehicleNumbers" name="vehicleNumbers" required>
+            </div>
+
+            <button type="submit">Submit</button>
+        </form>
+
+        <!-- Display area for vehicle data -->
+        <div id="vehicleDataDisplay">
+            <h2>Submitted Vehicle Data</h2>
+            <table id="vehicleDataTable">
+                <thead>
+                    <tr>
+                        <th>Vehicle Number</th>
+                        <th>Owner Name</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Table rows will be populated by JS -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
