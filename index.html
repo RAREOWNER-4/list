@@ -155,12 +155,6 @@
                 return;
             }
 
-            // Confirmation of chosen entries
-            const confirmation = confirm(`Confirm entries:\n${owners.map((owner, i) => `${owner} - ${entryLocations[i]}`).join('\n')}`);
-            if (!confirmation) {
-                return;
-            }
-
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
 
@@ -170,6 +164,14 @@
                 const nameParts = name.split(' ');
                 const mainName = nameParts.slice(0, -1).join(' ').toUpperCase();
                 const suffix = nameParts[nameParts.length - 1].toUpperCase();
+                const currentVehicles = vehicles[index].split(',').map(v => v.trim());
+                const totalHeight = 12 + 7 + 5 + 5 * currentVehicles.length; // Approximate height for this entry
+
+                // Check if adding this entry exceeds the page height (around 280 units)
+                if (y + totalHeight > 280) {
+                    doc.addPage();
+                    y = 10; // Reset y to top of new page
+                }
 
                 doc.setTextColor(255, 0, 0); // Red color
                 doc.setFontSize(24); // Large font size
@@ -194,7 +196,6 @@
                 doc.setTextColor(0, 0, 0); // Black color
                 doc.setFontSize(12);
                 doc.setFont("helvetica", "normal");
-                const currentVehicles = vehicles[index].split(',').map(v => v.trim());
                 currentVehicles.forEach(vehicle => {
                     doc.text(vehicle.toUpperCase(), 10, y);
                     y += 5;
