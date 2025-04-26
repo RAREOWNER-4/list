@@ -162,19 +162,21 @@
                 const mainName = nameParts.slice(0, -1).join(' ').toUpperCase();
                 const suffix = nameParts[nameParts.length - 1].toUpperCase();
 
+                // Larger owner name
                 doc.setTextColor(255, 0, 0); // Red color
-                doc.setFontSize(16);
+                doc.setFontSize(24); // Increased font size
                 doc.setFont("helvetica", "bold");
                 doc.text(mainName, 10, y);
 
-                y += 5;
+                y += 7; // Adjusted spacing for larger text
                 doc.setTextColor(255, 0, 0); // Red color
-                doc.setFontSize(16);
+                doc.setFontSize(24); // Increased font size
                 doc.setFont("helvetica", "bold");
                 doc.text(suffix, 10, y);
 
-                y += 10;
+                y += 12; // Adjusted spacing for larger text
 
+                // Entry location
                 doc.setTextColor(0, 0, 0); // Black color
                 doc.setFontSize(14);
                 doc.setFont("helvetica", "normal");
@@ -182,6 +184,7 @@
 
                 y += 5;
 
+                // Vehicle numbers
                 doc.setTextColor(0, 0, 0); // Black color
                 doc.setFontSize(12);
                 doc.setFont("helvetica", "normal");
