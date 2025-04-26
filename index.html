@@ -33,7 +33,7 @@
             color: #333;
         }
         input[type="text"] {
-            width: 80%;
+            width: 70%;
             padding: 10px;
             font-size: 16px;
             border: 1px solid #ddd;
@@ -41,7 +41,7 @@
             margin-top: 8px;
         }
         select {
-            width: 80%;
+            width: 70%;
             padding: 10px;
             font-size: 16px;
             border: 1px solid #ddd;
@@ -86,6 +86,11 @@
                 <div class="form-group">
                     <label>Owner Name:</label>
                     <input type="text" name="ownerName[]" required>
+                    <select name="entryLocation[]" required>
+                        <option value="Kanpur entry">Kanpur entry</option>
+                        <option value="Unnao entry">Unnao entry</option>
+                        <option value="Kanpur, Unnao entry">Kanpur, Unnao entry</option>
+                    </select>
                     <button type="button" class="add-btn" onclick="addOwnerField()">Add Owner</button>
                 </div>
             </div>
@@ -95,14 +100,6 @@
                     <input type="text" name="vehicleNumbers[]" required>
                     <button type="button" class="add-btn" onclick="addVehicleField()">Add Vehicle Set</button>
                 </div>
-            </div>
-            <div class="form-group">
-                <label for="entryLocation">Entry Location:</label>
-                <select id="entryLocation" name="entryLocation" required>
-                    <option value="Kanpur entry">Kanpur entry</option>
-                    <option value="Unnao entry">Unnao entry</option>
-                    <option value="Kanpur, Unnao entry">Kanpur, Unnao entry</option>
-                </select>
             </div>
             <button type="submit">Generate PDF</button>
         </form>
@@ -121,6 +118,11 @@
             newField.innerHTML = `
                 <label>Owner Name:</label>
                 <input type="text" name="ownerName[]" required>
+                <select name="entryLocation[]" required>
+                    <option value="Kanpur entry">Kanpur entry</option>
+                    <option value="Unnao entry">Unnao entry</option>
+                    <option value="Kanpur, Unnao entry">Kanpur, Unnao entry</option>
+                </select>
             `;
             ownerFields.appendChild(newField);
         }
@@ -141,14 +143,21 @@
             event.preventDefault();
 
             const ownerInputs = document.getElementsByName('ownerName[]');
+            const entryLocationInputs = document.getElementsByName('entryLocation[]');
             const vehicleInputs = document.getElementsByName('vehicleNumbers[]');
-            const entryLocation = document.getElementById('entryLocation').value;
 
             const owners = Array.from(ownerInputs).map(input => input.value.trim()).filter(name => name);
+            const entryLocations = Array.from(entryLocationInputs).map(select => select.value);
             const vehicles = Array.from(vehicleInputs).map(input => input.value.trim()).filter(set => set);
 
-            if (owners.length !== vehicles.length || owners.length === 0) {
-                alert('The number of owner names must match the number of vehicle number sets, and both must be non-empty.');
+            if (owners.length !== vehicles.length || owners.length === 0 || owners.length !== entryLocations.length) {
+                alert('The number of owner names, entry locations, and vehicle number sets must match, and all must be non-empty.');
+                return;
+            }
+
+            // Confirmation of chosen entries
+            const confirmation = confirm(`Confirm entries:\n${owners.map((owner, i) => `${owner} - ${entryLocations[i]}`).join('\n')}`);
+            if (!confirmation) {
                 return;
             }
 
@@ -162,29 +171,26 @@
                 const mainName = nameParts.slice(0, -1).join(' ').toUpperCase();
                 const suffix = nameParts[nameParts.length - 1].toUpperCase();
 
-                // Larger owner name
                 doc.setTextColor(255, 0, 0); // Red color
-                doc.setFontSize(24); // Increased font size
+                doc.setFontSize(24); // Large font size
                 doc.setFont("helvetica", "bold");
                 doc.text(mainName, 10, y);
 
-                y += 7; // Adjusted spacing for larger text
+                y += 7;
                 doc.setTextColor(255, 0, 0); // Red color
-                doc.setFontSize(24); // Increased font size
+                doc.setFontSize(24); // Large font size
                 doc.setFont("helvetica", "bold");
                 doc.text(suffix, 10, y);
 
-                y += 12; // Adjusted spacing for larger text
+                y += 12;
 
-                // Entry location
                 doc.setTextColor(0, 0, 0); // Black color
                 doc.setFontSize(14);
                 doc.setFont("helvetica", "normal");
-                doc.text(entryLocation, 190, y, { align: 'right' });
+                doc.text(entryLocations[index], 190, y, { align: 'right' });
 
                 y += 5;
 
-                // Vehicle numbers
                 doc.setTextColor(0, 0, 0); // Black color
                 doc.setFontSize(12);
                 doc.setFont("helvetica", "normal");
